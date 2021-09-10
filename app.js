@@ -57,6 +57,28 @@ app.action('movie_select', async ({ ack, body, client }) => {
   }
 });
 
+app.options({'action_id': 'movie_select'}, async ({ options, ack }) => {
+  const opt = []
+
+  for(let i=0; i < 3; i++) {
+    opt.push({
+      "text": {
+        "type": "plain_text",
+        "text": `*this is plain_text text* ${i}`
+      },
+      "value": `value-${i}`
+    });
+  }
+
+  ack({
+    "options": opt
+  });
+});
+
+app.action('movie_select', ({ ack }) => {
+  ack();
+});
+
 app.event('app_home_opened', async ({ event, client }) => {
   try {
     // Call views.publish with the built-in client
@@ -121,39 +143,14 @@ const modalView = {
     {
       "type": "input",
       "element": {
-        "type": "static_select",
+        "type": "external_select",
         "placeholder": {
           "type": "plain_text",
           "text": "Select an item",
           "emoji": true
         },
-        "options": [
-          {
-            "text": {
-              "type": "plain_text",
-              "text": "*this is plain_text text*",
-              "emoji": true
-            },
-            "value": "value-0"
-          },
-          {
-            "text": {
-              "type": "plain_text",
-              "text": "*this is plain_text text*",
-              "emoji": true
-            },
-            "value": "value-1"
-          },
-          {
-            "text": {
-              "type": "plain_text",
-              "text": "*this is plain_text text*",
-              "emoji": true
-            },
-            "value": "value-2"
-          }
-        ],
-        "action_id": "movie_select"
+        "action_id": "movie_select",
+        "min_query_length": 1
       },
       "label": {
         "type": "plain_text",
