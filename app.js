@@ -1,4 +1,5 @@
 const { App } = require("@slack/bolt");
+const util = require('util');
 require("dotenv").config();
 // Initializes your app with your bot token and signing secret
 const app = new App({
@@ -79,6 +80,30 @@ app.action('movie_select', ({ ack }) => {
   ack();
 });
 
+app.view('movie_modal_submit', async ({ ack, event, body, payload, client }) => {
+  try {
+    await ack();
+
+    console.log("event:" + util.inspect(event, {depth: null}));
+    console.log("payload.state.values:" + util.inspect(payload.state.values, {depth: null}));
+    console.log("body:" + util.inspect(body, {depth: null}));
+
+    //temp just return the value of the selected row
+    let selectedMovie = payload.state.values.movie_select_block.movie_select.selected_option.value;
+
+    const result = await client.chat.postMessage({
+    channel: body.user.id,
+    text: selectedMovie
+  });
+
+  console.log("result:" + result);
+
+  } catch (error) {
+    console.log("err")
+    console.error(error);
+  }
+});
+
 app.event('app_home_opened', async ({ event, client }) => {
   try {
     // Call views.publish with the built-in client
@@ -98,37 +123,37 @@ app.event('app_home_opened', async ({ event, client }) => {
 
 
 const homeView = {
-        // Home tabs must be enabled in your app configuration page under "App Home"
-        "type": "home",
-        "blocks": [
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": "*Welcome to Movie Info!🎉*"
-            }
-          },
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": "Click the button below to pick a movie!"
-            }
-          },
-          {
-            "type": "actions",
-            "elements": [
-            {
-              "type":"button",
-              "action_id":"movie_button",
-              "text": {
-                "type":"plain_text",
-                "text":"Select a Movie!"
-              }
-            }]
-          }
-        ]
-      };
+  // Home tabs must be enabled in your app configuration page under "App Home"
+  "type": "home",
+  "blocks": [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Welcome to Movie Info!🎉*"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "Click the button below to pick a movie!"
+      }
+    },
+    {
+      "type": "actions",
+      "elements": [
+      {
+        "type":"button",
+        "action_id":"movie_button",
+        "text": {
+          "type":"plain_text",
+          "text":"Select a Movie!"
+        }
+      }]
+    }
+  ]
+};
 
 const modalView = {
   "title": {
@@ -142,6 +167,7 @@ const modalView = {
   "blocks": [
     {
       "type": "input",
+      "block_id": "movie_select_block",
       "element": {
         "type": "external_select",
         "placeholder": {
@@ -160,7 +186,7 @@ const modalView = {
     }
   ],
   "type": "modal",
-  "callback_id": "movie-modal"
+  "callback_id": "movie_modal_submit"
 };
 
 const messageTemplate = {
