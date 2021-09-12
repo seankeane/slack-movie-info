@@ -1,5 +1,7 @@
 const { App } = require("@slack/bolt");
 const util = require('util');
+const axios = require('axios');
+
 require("dotenv").config();
 // Initializes your app with your bot token and signing secret
 const app = new App({
@@ -7,32 +9,15 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 
-app.command("/knowledge", async ({ command, ack, say }) => {
-    try {
-      await ack();
-      say("Yaaay! that command works!");
-    } catch (error) {
-      console.log("err")
-      console.error(error);
-    }
-});
-
 app.action('movie_button', async ({ ack, body, client }) => {
   try {
     await ack();
-    console.log(arguments.length);
-    console.log("body" + body);
 
     // Call the views.open method using the WebClient passed to listeners
     const result = await client.views.open({
       trigger_id: body.trigger_id,
       view: modalView
     });
-
-    const openModalViewId = result.view.id;
-    console.log("openModalViewId:" + openModalViewId);
-
-    console.log(result);
   } catch (error) {
     console.log("err")
     console.error(error);
@@ -42,8 +27,8 @@ app.action('movie_button', async ({ ack, body, client }) => {
 app.action('movie_select', async ({ ack, body, client }) => {
   try {
     await ack();
-    console.log(arguments.length);
-    console.log("body" + body);
+    //console.log(arguments.length);
+    //console.log("body" + body);
 
     // Call the views.open method using the WebClient passed to listeners
     const result = await client.views.open({
@@ -59,9 +44,47 @@ app.action('movie_select', async ({ ack, body, client }) => {
 });
 
 app.options({'action_id': 'movie_select'}, async ({ options, ack }) => {
-  const opt = []
+  //console.log("options:" + util.inspect(options, {depth: null}));
+  let searchString = options.value.toLowerCase();
 
-  for(let i=0; i < 3; i++) {
+  let url = `https://api.themoviedb.org/3/search/movie?query=${searchString}&api_key=${process.env.MOVIE_DB_AUTH_KEY}&language=en-US&page=3&include_adult=false`;
+  
+  //axios implementation
+  /*
+  axios.get(url)
+    .then(function (response) {
+      //console.log(response);
+      if (response.results) {
+        let searchResults = Array.from(response.results, function(x) {
+        console.log(x);
+        let res = {
+          "text": {
+            "type": "plain_text",
+            "text": x.title
+          },
+          "value": x.id
+          };
+          return res;
+        });
+        console.log(searchResults);
+      }
+      
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    */
+  
+
+  //dummy data
+  const opt = [];
+
+  //console.log("options:" + util.inspect(options, {depth: null}));
+
+  //const opt = mockMovieData.filter(title => title.toLowerCase.includes(searchString));
+  
+
+  /*for(let i=0; i < 3; i++) {
     opt.push({
       "text": {
         "type": "plain_text",
@@ -69,9 +92,21 @@ app.options({'action_id': 'movie_select'}, async ({ options, ack }) => {
       },
       "value": `value-${i}`
     });
+  }*/
+
+  for(let i=0; i < mockMovieData.length; i++) {
+    opt.push({
+      "text": {
+        "type": "plain_text",
+        "text": mockMovieData[i].title
+      },
+      "value": `${mockMovieData[i].id}`
+    });
   }
 
-  ack({
+  //console.log(opt);
+
+  await ack({
     "options": opt
   });
 });
@@ -80,20 +115,79 @@ app.action('movie_select', ({ ack }) => {
   ack();
 });
 
-app.view('movie_modal_submit', async ({ ack, event, body, payload, client }) => {
+app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
   try {
     await ack();
-
-    console.log("event:" + util.inspect(event, {depth: null}));
-    console.log("payload.state.values:" + util.inspect(payload.state.values, {depth: null}));
-    console.log("body:" + util.inspect(body, {depth: null}));
+    //console.log("payload.state.values:" + util.inspect(payload.state.values, {depth: null}));
+    //console.log("body:" + util.inspect(body, {depth: null}));
 
     //temp just return the value of the selected row
-    let selectedMovie = payload.state.values.movie_select_block.movie_select.selected_option.value;
+    let selectedMovieId = payload.state.values.movie_select_block.movie_select.selected_option.value;
 
-    const result = await client.chat.postMessage({
+    let url = `https://api.themoviedb.org/3/movie/${selectedMovieId}?api_key=${process.env.MOVIE_DB_AUTH_KEY}`;
+
+    let selectedMovieTitle = "Movie Title";
+    let selectedMovieReleaseDate = "Movie Release Date";
+    let selectedDescription = "Movie Description";
+    let selectedMoviePosterUrl = "https://s3-media3.fl.yelpcdn.com/bphoto/c7ed05m9lC2EmA3Aruue7A/o.jpg";
+
+    axios.get(url)
+    .then(function (response) {
+      if (response) {
+        console.log("responsedata:" + util.inspect(response, {depth: null}));
+        selectedMovieTitle = response.data.title;
+        selectedDescription = response.data.overview;
+        selectedMovieReleaseDate = response.data.release_date;
+        selectedMoviePosterUrl = `https://image.tmdb.org/t/p/w600_and_h900_bestv2${response.data.poster_path}`;
+      }
+      
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+    const sendGetRequest = async() => {
+      try {
+        const resp = await.axios.get(url)
+      }
+    }
+
+  const messageBlock = [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "Here's the movie info you requested"
+      }
+    },
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": selectedMovieTitle,
+        "emoji": true
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": `Release date: ${selectedMovieReleaseDate}\n${selectedDescription}.`
+      },
+      "accessory": {
+        "type": "image",
+        "image_url": selectedMoviePosterUrl,
+        "alt_text": "cute cat"
+      }
+    },
+    {
+      "type": "divider"
+    }
+  ];
+
+  const result = await client.chat.postMessage({
     channel: body.user.id,
-    text: selectedMovie
+    blocks: messageBlock
   });
 
   console.log("result:" + result);
@@ -189,40 +283,50 @@ const modalView = {
   "callback_id": "movie_modal_submit"
 };
 
-const messageTemplate = {
-  "blocks": [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "Here's the movie info you requested"
-      }
-    },
-    {
-      "type": "header",
-      "text": {
-        "type": "plain_text",
-        "text": "{Movie Title}",
-        "emoji": true
-      }
-    },
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "Release date: {Date}\n {Plot Description}."
-      },
-      "accessory": {
-        "type": "image",
-        "image_url": "https://pbs.twimg.com/profile_images/625633822235693056/lNGUneLX_400x400.jpg",
-        "alt_text": "cute cat"
-      }
-    },
-    {
-      "type": "divider"
-    }
-  ]
-};
+
+
+const mockMovieData = [
+ {
+   "title": "Avatar",
+   "id": 19995
+ },
+ {
+   "title": "Pirates of the Caribbean: At World's End",
+   "id": 285
+ },
+ {
+   "title": "Spectre",
+   "id": 206647
+ },
+ {
+   "title": "The Dark Knight Rises",
+   "id": 49026
+ },
+ {
+   "title": "John Carter",
+   "id": 49529
+ },
+ {
+   "title": "Spider-Man 3",
+   "id": 559
+ },
+ {
+   "title": "Tangled",
+   "id": 38757
+ },
+ {
+   "title": "Avengers: Age of Ultron",
+   "id": 99861
+ },
+ {
+   "title": "Harry Potter and the Half-Blood Prince",
+   "id": 767
+ },
+ {
+   "title": "Batman v Superman: Dawn of Justice",
+   "id": 209112
+ }
+];
 
 (async () => {
   const port = 3000
