@@ -44,7 +44,6 @@ app.action('movie_select', async ({ ack, body, client }) => {
 });
 
 app.options({'action_id': 'movie_select'}, async ({ options, ack }) => {
-  //console.log("options:" + util.inspect(options, {depth: null}));
   let searchString = options.value.toLowerCase();
 
   let url = `https://api.themoviedb.org/3/search/movie?query=${searchString}&api_key=${process.env.MOVIE_DB_AUTH_KEY}&language=en-US&page=3&include_adult=false`;
@@ -129,7 +128,7 @@ app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
     let selectedMoviePosterUrl = "https://s3-media3.fl.yelpcdn.com/bphoto/c7ed05m9lC2EmA3Aruue7A/o.jpg";
 
 
-
+    // GET request with Axios to TMDB to get movie details
     axios.get(url)
     .then(function (response) {
       if (response) {
@@ -159,7 +158,7 @@ app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `Release date: ${selectedMovieReleaseDate}\n${selectedDescription}.`
+              "text": `*Release date*: ${selectedMovieReleaseDate}\n${selectedDescription}.`
             },
             "accessory": {
               "type": "image",
@@ -174,7 +173,8 @@ app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
 
         const result = client.chat.postMessage({
           channel: body.user.id,
-          blocks: messageBlock
+          blocks: messageBlock,
+          text: `Movie Title: ${selectedMovieTitle}, Release Date: ${selectedMovieReleaseDate}, Description: ${selectedDescription}`
         });
       }
       
@@ -204,8 +204,6 @@ app.event('app_home_opened', async ({ event, client }) => {
     console.error(error);
   }
 });
-
-
 
 const homeView = {
   // Home tabs must be enabled in your app configuration page under "App Home"
@@ -274,49 +272,47 @@ const modalView = {
   "callback_id": "movie_modal_submit"
 };
 
-
-
 const mockMovieData = [
- {
+  {
    "title": "Avatar",
    "id": 19995
- },
- {
+  },
+  {
    "title": "Pirates of the Caribbean: At World's End",
    "id": 285
- },
- {
+  },
+  {
    "title": "Spectre",
    "id": 206647
- },
- {
+  },
+  {
    "title": "The Dark Knight Rises",
    "id": 49026
- },
- {
+  },
+  {
    "title": "John Carter",
    "id": 49529
- },
- {
+  },
+  {
    "title": "Spider-Man 3",
    "id": 559
- },
- {
+  },
+  {
    "title": "Tangled",
    "id": 38757
- },
- {
+  },
+  {
    "title": "Avengers: Age of Ultron",
    "id": 99861
- },
- {
+  },
+  {
    "title": "Harry Potter and the Half-Blood Prince",
    "id": 767
- },
- {
+  },
+  {
    "title": "Batman v Superman: Dawn of Justice",
    "id": 209112
- }
+  }
 ];
 
 (async () => {
