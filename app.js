@@ -27,8 +27,6 @@ app.action('movie_button', async ({ ack, body, client }) => {
 app.action('movie_select', async ({ ack, body, client }) => {
   try {
     await ack();
-    //console.log(arguments.length);
-    //console.log("body" + body);
 
     // Call the views.open method using the WebClient passed to listeners
     const result = await client.views.open({
@@ -46,64 +44,9 @@ app.action('movie_select', async ({ ack, body, client }) => {
 app.options({'action_id': 'movie_select'}, async ({ options, ack }) => {
   let searchString = options.value.toLowerCase();
 
-  let url = `https://api.themoviedb.org/3/search/movie?query=${searchString}&api_key=${process.env.MOVIE_DB_AUTH_KEY}&language=en-US&page=3&include_adult=false`;
-  
-  //axios implementation
-  /*
-  axios.get(url)
-    .then(function (response) {
-      //console.log(response);
-      if (response.results) {
-        let searchResults = Array.from(response.results, function(x) {
-        console.log(x);
-        let res = {
-          "text": {
-            "type": "plain_text",
-            "text": x.title
-          },
-          "value": x.id
-          };
-          return res;
-        });
-        console.log(searchResults);
-      }
-      
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-    */
-  
-
-  //dummy data
-  const opt = [];
-
-  //console.log("options:" + util.inspect(options, {depth: null}));
-
-  //const opt = mockMovieData.filter(title => title.toLowerCase.includes(searchString));
-  
-
-  /*for(let i=0; i < 3; i++) {
-    opt.push({
-      "text": {
-        "type": "plain_text",
-        "text": `*this is plain_text text* ${i}`
-      },
-      "value": `value-${i}`
-    });
-  }*/
-
-  for(let i=0; i < mockMovieData.length; i++) {
-    opt.push({
-      "text": {
-        "type": "plain_text",
-        "text": mockMovieData[i].title
-      },
-      "value": `${mockMovieData[i].id}`
-    });
-  }
-
-  //console.log(opt);
+  const opt = presetMovieData.filter(x => x.text.text.toLowerCase().includes(searchString));
+  //console.log("searchString:" + searchString);
+  //console.log("opt:" + util.inspect(opt, {depth: null}));
 
   await ack({
     "options": opt
@@ -143,7 +86,7 @@ app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": "Here's the movie info you requested"
+              "text": "Here's the movie info you requested!"
             }
           },
           {
@@ -272,48 +215,68 @@ const modalView = {
   "callback_id": "movie_modal_submit"
 };
 
-const mockMovieData = [
-  {
-   "title": "Avatar",
-   "id": 19995
+const presetMovieData = [
+  {"text": {
+    "type": "plain_text",
+    "text": "Avatar"
+    },
+    "value": "19995"
   },
-  {
-   "title": "Pirates of the Caribbean: At World's End",
-   "id": 285
+  {"text": {
+    "type": "plain_text",
+    "text": "Pirates of the Caribbean: At World's End"
+    },
+    "value": "285"
   },
-  {
-   "title": "Spectre",
-   "id": 206647
+  {"text": {
+    "type": "plain_text",
+    "text": "Spectre"
+    },
+    "value": "206647"
   },
-  {
-   "title": "The Dark Knight Rises",
-   "id": 49026
+  {"text": {
+    "type": "plain_text",
+    "text": "The Dark Knight Rises"
+    },
+    "value": "49026"
   },
-  {
-   "title": "John Carter",
-   "id": 49529
+  {"text": {
+    "type": "plain_text",
+    "text": "John Carter"
+    },
+    "value": "49529"
   },
-  {
-   "title": "Spider-Man 3",
-   "id": 559
+  {"text": {
+    "type": "plain_text",
+    "text": "Spider-Man 3"
+    },
+    "value": "559"
   },
-  {
-   "title": "Tangled",
-   "id": 38757
+  {"text": {
+    "type": "plain_text",
+    "text": "Tangled"
+    },
+    "value": "38757"
   },
-  {
-   "title": "Avengers: Age of Ultron",
-   "id": 99861
+  {"text": {
+    "type": "plain_text",
+    "text": "Avengers: Age of Ultron"
+    },
+    "value": "99861"
   },
-  {
-   "title": "Harry Potter and the Half-Blood Prince",
-   "id": 767
+  {"text": {
+    "type": "plain_text",
+    "text": "Harry Potter and the Half-Blood Prince"
+    },
+    "value": "767"
   },
-  {
-   "title": "Batman v Superman: Dawn of Justice",
-   "id": 209112
-  }
-];
+  {"text": {
+    "type": "plain_text",
+    "text": "Batman v Superman: Dawn of Justice"
+    },
+    "value": "209112"
+  }];
+
 
 (async () => {
   const port = 3000
