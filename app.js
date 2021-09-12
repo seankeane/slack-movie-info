@@ -118,10 +118,7 @@ app.action('movie_select', ({ ack }) => {
 app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
   try {
     await ack();
-    //console.log("payload.state.values:" + util.inspect(payload.state.values, {depth: null}));
-    //console.log("body:" + util.inspect(body, {depth: null}));
 
-    //temp just return the value of the selected row
     let selectedMovieId = payload.state.values.movie_select_block.movie_select.selected_option.value;
 
     let url = `https://api.themoviedb.org/3/movie/${selectedMovieId}?api_key=${process.env.MOVIE_DB_AUTH_KEY}`;
@@ -131,66 +128,60 @@ app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
     let selectedDescription = "Movie Description";
     let selectedMoviePosterUrl = "https://s3-media3.fl.yelpcdn.com/bphoto/c7ed05m9lC2EmA3Aruue7A/o.jpg";
 
+
+
     axios.get(url)
     .then(function (response) {
       if (response) {
-        console.log("responsedata:" + util.inspect(response, {depth: null}));
+        //console.log("responsedata:" + util.inspect(response, {depth: null}));
         selectedMovieTitle = response.data.title;
         selectedDescription = response.data.overview;
         selectedMovieReleaseDate = response.data.release_date;
         selectedMoviePosterUrl = `https://image.tmdb.org/t/p/w600_and_h900_bestv2${response.data.poster_path}`;
+
+        const messageBlock = [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Here's the movie info you requested"
+            }
+          },
+          {
+            "type": "header",
+            "text": {
+              "type": "plain_text",
+              "text": selectedMovieTitle,
+              "emoji": true
+            }
+          },
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `Release date: ${selectedMovieReleaseDate}\n${selectedDescription}.`
+            },
+            "accessory": {
+              "type": "image",
+              "image_url": selectedMoviePosterUrl,
+              "alt_text": "cute cat"
+            }
+          },
+          {
+            "type": "divider"
+          }
+        ];
+
+        const result = client.chat.postMessage({
+          channel: body.user.id,
+          blocks: messageBlock
+        });
       }
       
     })
     .catch(function (error) {
       console.log(error);
     });
-
-    const sendGetRequest = async() => {
-      try {
-        const resp = await.axios.get(url)
-      }
-    }
-
-  const messageBlock = [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "Here's the movie info you requested"
-      }
-    },
-    {
-      "type": "header",
-      "text": {
-        "type": "plain_text",
-        "text": selectedMovieTitle,
-        "emoji": true
-      }
-    },
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": `Release date: ${selectedMovieReleaseDate}\n${selectedDescription}.`
-      },
-      "accessory": {
-        "type": "image",
-        "image_url": selectedMoviePosterUrl,
-        "alt_text": "cute cat"
-      }
-    },
-    {
-      "type": "divider"
-    }
-  ];
-
-  const result = await client.chat.postMessage({
-    channel: body.user.id,
-    blocks: messageBlock
-  });
-
-  console.log("result:" + result);
 
   } catch (error) {
     console.log("err")
