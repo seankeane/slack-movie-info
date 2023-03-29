@@ -64,12 +64,6 @@ app.options('movie_select', async ({ options, ack }) => {
   }
 });
 
-/*
-app.action('movie_select', ({ ack }) => {
-  ack();
-});
-*/
-
 app.view('movie_modal_submit', async ({ ack, body, payload, client }) => {
   try {
     await ack();
@@ -123,7 +117,7 @@ function constructDMFromTMDBResponse(data) {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": `*Release date*: <!date^${selectedMovieReleaseDateUnix}^{date_short}|${selectedMovieReleaseDateString}>\n${selectedDescription}.`
+        "text": `*Release date*: <!date^${selectedMovieReleaseDateUnix}^{date_short}|${selectedMovieReleaseDateString}>\n${selectedDescription}`
       },
       "accessory": {
         "type": "image",
@@ -162,7 +156,6 @@ async function sendDMToUser(client, channel, block, text) {
   // log success or failure based on ok status in result
   if (dmResult.ok) {
     console.log("DM sent successfully");
-    console.log("DM result body:" + util.inspect(dmResult, {depth: null}));
   } else {
     console.log("DM failed to send");
     console.log("DM result body:" + util.inspect(dmResult, {depth: null}));
