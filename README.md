@@ -39,7 +39,7 @@ ngrok http 3000
 This should start ngrok and making your app running on port 3000 available via a public URL. The Forwarding URL will be displayed in terminal.
 
 ### Slack
-Modify your Slack app to referencing your Forwarding URL prepended with `/slack/events` in the following places:
+Modify your Slack app to referencing your Forwarding URL appended with `/slack/events` in the following places:
 - `Features > Interactivity & Shortcuts > Interactivity > Request URL`
 - `Features > Interactivity & Shortcuts > Select Menus > Options Load URL`
 - `Features > Event Subscriptions > Enable Events > Request URL`
